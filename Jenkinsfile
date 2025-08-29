@@ -1,64 +1,80 @@
 pipeline {
-    agent any
+  agent any
 
-    parameters {
-        choice(name: 'ENV', choices: ['dev', 'qa', 'prod'], description: 'Choose environment to deploy')
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '15'))
+  }
+
+  parameters {
+    choice(name: 'ENV', choices: ['dev', 'qa', 'prod'], description: 'Choose target environment')
+  }
+
+  triggers {
+    // Optional if you also wire a GitHub webhook:
+    pollSCM('H/2 * * * *') // check every ~2 minutes
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        // PUBLIC repo:
+        git url: 'https://github.com/Harshvardhanpingane/UsePipeline.git', branch: 'main'
+
+        // If your repo is PRIVATE, comment the line above and uncomment below:
+        // git branch: 'BRANCH_HERE', url: 'REPO_URL_HERE', credentialsId: 'CREDENTIALS_ID_HERE'
+      }
     }
 
-    triggers {
-        // Poll SCM काढून फक्त webhook वापरायचं असेल तर इथे काहीच ठेवू नकोस
-         pollSCM('H/5 * * * *') // जर backup म्हणून हवे असेल तर ठेऊ शकतो
+    stage('Build') {
+      steps {
+        bat '''
+        echo === BUILD START ===
+        echo Date: %date% %time%
+        if not exist build mkdir build
+        echo Sample artifact created by Jenkins on %date% %time% > build\\artifact.txt
+        echo === BUILD END ===
+        exit /b 1
+        '''
+      }
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/Harshvardhanpingane/UsePipeline.git'
-            }
-        }
-        stage('Build') {
-          steps {
-            bat 'exit /b 1'
-        }
-
-
-        stage('Archive Artifacts') {
-            steps {
-                archiveArtifacts artifacts: 'build/*.txt', onlyIfSuccessful: true
-                echo "📦 All artifacts archived"
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                script {
-                    def deployDir = "C:\\deploy\\${params.ENV}"
-                    bat """
-                        if not exist "${deployDir}" mkdir "${deployDir}"
-                        copy build\\*.txt "${deployDir}\\"
-                    """
-                    echo "🚀 Artifacts copied to ${deployDir}"
-                }
-            }
-        }
+    stage('Archive Artifact') {
+      steps {
+        archiveArtifacts artifacts: 'build\\artifact.txt', onlyIfSuccessful: true
+      }
     }
 
-    post {
-        success {
-            echo "✅ Pipeline succeeded for ENV = ${params.ENV}"
-            emailext(
-                subject: "Jenkins SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: "Good news!\nBuild for ENV = ${params.ENV} succeeded.\nArtifacts deployed to C:\\deploy\\${params.ENV}",
-                to: "harshvardhanpingane2002@gmail.com"
-            )
-        }
-        failure {
-            echo "❌ Pipeline failed!"
-            emailext(
-                subject: "Jenkins FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: "Build for ENV = ${params.ENV} failed.\nCheck Jenkins console output.",
-                to: "harshvardhanpingane2002@gmail.com"
-            )
-        }
+    stage('Deploy') {
+      when { expression { params.ENV in ['dev','qa','prod'] } }
+      steps {
+        bat """
+        set TARGET_DIR=C:\\deploy\\%ENV%
+        if not exist %TARGET_DIR% mkdir %TARGET_DIR%
+        copy /Y build\\artifact.txt %TARGET_DIR%\\artifact-%ENV%.txt
+        echo Deployed artifact to %TARGET_DIR%
+        """
+      }
     }
+  }
+
+  post {
+    success {
+      echo "✅ ${env.JOB_NAME} #${env.BUILD_NUMBER} finished OK (ENV=${params.ENV})"
+    }
+    failure {
+      // Requires Email Extension plugin + SMTP configured
+      emailext(
+        subject: "❌ Jenkins FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+        to: 'harshvardhanpingane2002@gmail.com',
+        body: """Build failed.
+
+Job: ${env.JOB_NAME}
+Build: #${env.BUILD_NUMBER}
+ENV: ${params.ENV}
+Console: ${env.BUILD_URL}console
+"""
+      )
+    }
+  }
 }
