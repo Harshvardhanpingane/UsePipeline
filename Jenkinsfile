@@ -7,7 +7,7 @@ pipeline {
 
     triggers {
         // Poll SCM काढून फक्त webhook वापरायचं असेल तर इथे काहीच ठेवू नकोस
-        // pollSCM('H/5 * * * *') // जर backup म्हणून हवे असेल तर ठेऊ शकतो
+         pollSCM('H/5 * * * *') // जर backup म्हणून हवे असेल तर ठेऊ शकतो
     }
 
     stages {
@@ -65,7 +65,7 @@ pipeline {
             emailext(
                 subject: "Jenkins FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: "Build for ENV = ${params.ENV} failed.\nCheck Jenkins console output.",
-                to: "your-email@example.com"
+                to: "harshvardhanpingane2002@gmail.com"
             )
         }
     }
