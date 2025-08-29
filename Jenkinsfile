@@ -74,7 +74,7 @@ Build: #${env.BUILD_NUMBER}
 ENV: ${params.ENV}
 Console: ${env.BUILD_URL}console
 """
-      )
-    }
-  }
+      )
+    }
+  }
 }
