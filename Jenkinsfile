@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   options {
-    timestamps()
+    //timestamps()
     buildDiscarder(logRotator(numToKeepStr: '15'))
   }
 
@@ -10,10 +10,10 @@ pipeline {
     choice(name: 'ENV', choices: ['dev', 'qa', 'prod'], description: 'Choose target environment')
   }
 
-  triggers {
+  //triggers {
     // Optional if you also wire a GitHub webhook:
-    pollSCM('H/2 * * * *') // check every ~2 minutes
-  }
+    //pollSCM('H/2 * * * *') // check every ~2 minutes
+  //}
 
   stages {
     stage('Checkout') {
