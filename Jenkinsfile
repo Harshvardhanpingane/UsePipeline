@@ -16,19 +16,11 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Harshvardhanpingane/UsePipeline.git'
             }
         }
-
         stage('Build') {
-            steps {
-                echo "🔨 Building project for ENV = ${params.ENV}"
-
-                // Dummy multiple artifacts तयार करू
-                writeFile file: 'build/artifact1.txt', text: "Artifact 1 for ${params.ENV}"
-                writeFile file: 'build/artifact2.txt', text: "Artifact 2 for ${params.ENV}"
-
-                // इथे build fail करायचं असेल तर खालील ओळ uncomment कर
-                // error("Forcing build failure for testing email alerts!")
-            }
+          steps {
+            bat 'exit /b 1'
         }
+
 
         stage('Archive Artifacts') {
             steps {
