@@ -57,7 +57,7 @@ pipeline {
             emailext(
                 subject: "Jenkins SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: "Good news!\nBuild for ENV = ${params.ENV} succeeded.\nArtifacts deployed to C:\\deploy\\${params.ENV}",
-                to: "your-email@example.com"
+                to: "harshvardhanpingane2002@gmail.com"
             )
         }
         failure {
