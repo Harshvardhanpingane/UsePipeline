@@ -19,7 +19,7 @@ pipeline {
     stage('Checkout') {
       steps {
         // PUBLIC repo:
-        git url: 'https://github.com/Harshvardhanpingane/UsePipeline.git', branch: 'main'
+        git url: 'REPO_URL_HERE', branch: 'BRANCH_HERE'
 
         // If your repo is PRIVATE, comment the line above and uncomment below:
         // git branch: 'BRANCH_HERE', url: 'REPO_URL_HERE', credentialsId: 'CREDENTIALS_ID_HERE'
